@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Examen — Automatización Electrónica</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root { 
+            --blue: #1e6fff; 
+            --bg: #f4f6f9; 
+            --card: rgba(255, 255, 255, 0.98);
+            --text: #1e293b; 
+            --border: #e2e8f0; 
+            --success: #22c55e;
+        }
+      
+        body { 
+            font-family: system-ui, -apple-system, sans-serif;
+            color: var(--text);
+            margin: 0;
+            padding: 10px;
+            min-height: 100vh;
+            background-image: linear-gradient(rgba(244, 246, 249, 0.8), rgba(244, 246, 249, 0.8)), url('La-Aurora-107-Nicaragua-Robusto-2.png'); 
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container { 
+            width: 100%;
+            max-width: 900px;
+            background: var(--card);
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            overflow: hidden;
+            border: 1px solid white;
+        }
+
+        .hidden { display: none !important; }
+        .view-padding { padding: 40px; }
+
+        .welcome-box { max-width: 600px; margin: 0 auto; }
+        .instructions { background: #f8fafc; border-left: 5px solid var(--blue); padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+        .input-field { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 15px; box-sizing: border-box; font-size: 16px; }
+
+        .exam-header { display: flex; justify-content: space-between; margin-bottom: 20px; font-weight: bold; color: var(--blue); border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .question-text { font-size: 20px; font-weight: 700; margin-bottom: 25px; line-height: 1.4; }
+        .option-label { display: flex; align-items: center; padding: 15px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 12px; cursor: pointer; transition: 0.2s; }
+        .option-label:hover { background: #f1f7ff; }
+        .option-label input { margin-right: 15px; transform: scale(1.3); }
+
+        .results-view { text-align: center; }
+        .score-circle { font-size: 80px; font-weight: 900; color: var(--blue); margin: 20px 0; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px auto; max-width: 400px; }
+        .stat-card { background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid var(--border); }
+
+        .btn { padding: 14px 24px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 15px; }
+        .btn-primary { background: var(--blue); color: white; width: 100%; }
+        .btn-success { background: var(--success); color: white; width: 100%; margin-top: 10px; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: #64748b; }
+        .btn:disabled { opacity: 0.4; }
+
+        @media (max-width: 600px) { .view-padding { padding: 20px; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="view-start" class="view-padding">
+        <div class="welcome-box">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <img src="La_Aurora.png" alt="La Aurora" style="height: 80px; margin-bottom: 10px;">
+                <h2 style="margin: 0;">Evaluación Técnica</h2>
+                <p style="color: #64748b;">La Aurora — Automatización</p>
+            </div>
+            <div class="instructions">
+                <strong>📋 Instrucciones:</strong>
+                <ul style="margin: 0; padding-left: 20px; font-size: 14px;">
+                    <li>50 Preguntas técnicas de automatización.</li>
+                    <li>30 Minutos de tiempo límite.</li>
+                </ul>
+            </div>
+            <input type="text" id="inputName" class="input-field" placeholder="Nombre Completo">
+            <input type="text" id="inputId" class="input-field" placeholder="ID de Empleado">
+            <button class="btn btn-primary" onclick="startExam()">INICIAR EXAMEN</button>
+        </div>
+    </div>
+
+    <div id="view-exam" class="view-padding hidden">
+        <div class="exam-header">
+            <div id="progressText">Pregunta 1 / 50</div>
+            <div id="timerDisplay">30:00</div>
+        </div>
+        <div id="questionArea"></div>
+        <div style="display: flex; justify-content: space-between; margin-top: 30px; gap: 15px;">
+            <button class="btn btn-outline" id="btnPrev" onclick="prevQuestion()" style="flex: 1;">Anterior</button>
+            <button class="btn btn-primary" id="btnNext" onclick="nextQuestion()" style="flex: 2;">Siguiente</button>
+        </div>
+    </div>
+
+    <div id="view-results" class="view-padding hidden">
+        <div class="results-view">
+            <h2>¡Examen Completado!</h2>
+            <p id="resultUser" style="font-weight: bold;"></p>
+            <div class="score-circle" id="finalScore">0%</div>
+            <div class="stats-grid">
+                <div class="stat-card">Correctas: <strong id="statCorrect">0</strong></div>
+                <div class="stat-card">Incorrectas: <strong id="statWrong">0</strong></div>
+            </div>
+            <button class="btn btn-success" onclick="exportToExcel()">📥 DESCARGAR REPORTE EXCEL</button>
+            <button class="btn btn-outline" style="width: 100%; margin-top: 10px;" onclick="location.reload()">Nuevo Intento</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// --- CONFIGURACIÓN ---
+const urlGoogleSheet = "https://script.google.com/macros/s/AKfycbwOmh_ZPBjWhfUzZa24j2WbMP2PaGVoYUFPLl1msKbDUNniL4JclkI0XPwJ30gHp77U_w/exec";
+
+const QUESTIONS_BASE = [
+  {q:'¿Cuál es la función principal del contactor K1?', a:['Arrancar y cortar el motor','Reducir voltaje','Medir corriente','Proteger el PLC'], c:0},
+  {q:'¿Qué protección brinda el breaker principal?', a:['Protección contra sobrecorriente','Control de velocidad','Cambio de fases','Arranque suave'], c:0},
+  {q:'¿Para qué sirve un relé térmico?', a:['Detectar sobrecarga del motor','Medir temperatura ambiente','Regular voltaje','Proteger contra cortocircuito'], c:0},
+  {q:'¿Qué indica el símbolo del transformador?', a:['Cambio de voltaje','Señal analógica','Final de carrera','Resistencia'], c:0},
+  {q:'¿Qué representa una bobina A1-A2?', a:['Bobina de un contactor','Sensor inductivo','Fusible rápido','Carga resistiva'], c:0},
+  {q:'¿Qué función tiene la regleta de bornes?', a:['Organizar y conectar cables','Reducir ruido eléctrico','Convertir señales','Almacenar energía'], c:0},
+  {q:'¿Qué componente convierte 220V a 24V?', a:['Transformador','PLC','Relevador','Sensor IR'], c:0},
+  {q:'¿Qué es un interruptor NA?', a:['Normalmente abierto','Normalmente conectado','Activo negativo','Apagado automático'], c:0},
+  {q:'¿Qué es un interruptor NC?', a:['Normalmente cerrado','Negativo común','No calibrado','Nodo de control'], c:0},
+  {q:'¿Para qué sirve el PLC?', a:['Controlar la lógica de la máquina','Reducir potencia','Convertir CA a CC','Dar señal analógica'], c:0},
+  {q:'¿Qué inicia el arranque del motor?', a:['Botón de marcha','Botón de paro','Sensor capacitivo','Fusible térmico'], c:0},
+  {q:'¿Para qué sirve el relé térmico en un motor?', a:['Evitar sobrecarga','Cambiar fases','Elevar voltaje','Aumentar torque'], c:0},
+  {q:'¿Qué pasa si K1 se queda pegado?', a:['El motor no se apaga','El motor invierte giro','El motor pierde torque','El PLC reinicia'], c:0},
+  {q:'¿Por qué se coloca fusible en cada fase?', a:['Proteger circuito','Aumentar corriente','Crear redundancia','Mejorar voltaje'], c:0},
+  {q:'¿Qué indica sobrecarga del motor?', a:['Acción del relé térmico','Luz verde activa','Baja tensión','RPM bajas'], c:0},
+  {q:'¿Qué evita dos motores simultáneos?', a:['Enclavamiento','Presostato','Breaker doble','Variador'], c:0},
+  {q:'¿Cómo se identifica el sentido de giro?', a:['Cambio de fases','Intensidad de corriente','Voltaje neutro','Señal analógica'], c:0},
+  {q:'¿Qué controla la velocidad si aparece?', a:['Variador de frecuencia','Timer','Sensor óptico','PLC'], c:0},
+  {q:'¿Qué sensor detecta presencia?', a:['Sensor inductivo/fotoeléctrico','Presostato','Termistor','Relé térmico'], c:0},
+  {q:'¿Qué indica el sensor inductivo?', a:['Metal presente','Luz baja','Aire comprimido','Voltaje DC'], c:0},
+  {q:'¿Qué es final de carrera NA?', a:['Sin contacto al reposo','Cerrado al reposo','Detecta voltaje','Control de presión'], c:0},
+  {q:'¿Qué es final de carrera NC?', a:['Contacto cerrado al reposo','Detecta distancia','Mide resistencia','Detecta temperatura'], c:0},
+  {q:'¿Qué ocurre si un sensor de seguridad abre?', a:['La máquina se detiene','Arranca la alarma','Aumenta la velocidad','El PLC reinicia'], c:0},
+  {q:'¿Cómo se identifica una fotocélula?', a:['Símbolo con emisor/receptor','Símbolo de bobina','Símbolo de resistencia','Símbolo de fusible'], c:0},
+  {q:'¿Para qué sirve el paro de emergencia?', a:['Detener la máquina','Encender luces','Bajar voltaje','Resetear PLC'], c:0},
+  {q:'¿Por qué el paro es NC?', a:['Falla segura','Evitar bajas RPM','Mejorar torque','Aumentar potencia'], c:0},
+  {q:'¿Qué contacto tiene botón de marcha?', a:['NA','NC','DPDT','PWM'], c:0},
+  {q:'¿Qué evita arranque después de un apagón?', a:['Auto-retención de control','Reset manual','Sensores inductivos','Fotocélula'], c:0},
+  {q:'¿Cómo se identifica un enclavamiento?', a:['Contacto auxiliar NC','Luz roja','Voltímetro','Relevador'], c:0},
+  {q:'¿Para qué sirve relé de seguridad?', a:['Monitorear emergencias','Regular voltaje','Controlar torque','Medir sensores'], c:0},
+  {q:'¿Por qué el Rele de seguridad tienen dos canales?', a:['Redundancia','Para consumir menos energía','Para aumentar torque','Para medir RPM'], c:0},
+  {q:'¿Qué función tiene el piloto verde?', a:['Indicar máquina encendida','Indicar peligro','Indicar paro','Indicar fallo'], c:0},
+  {q:'¿Qué indica piloto rojo?', a:['Falla o parada','Motor encendido','Velocidad alta','PLC online'], c:0},
+  {q:'¿Qué indica luz amarilla?', a:['Advertencia','Motor encendido','Baja carga','Alta presión'], c:0},
+  {q:'¿Qué relé controla luces piloto?', a:['Relé de señalización','Relevador térmico','Variador','Selector'], c:0},
+  {q:'¿Cómo se identifica alarma sonora?', a:['Símbolo buzzer','Símbolo bobina','Símbolo de fusible','Símbolo de sensor'], c:0},
+  {q:'¿Qué entrada recibe señal de marcha?', a:['Entrada digital PLC','Salida analógica','Sensor RTD','Relé térmico'], c:0},
+  {q:'¿Qué salida controla contactor?', a:['Salida digital PLC','Salida analógica','PWM','CANBus'], c:0},
+  {q:'¿Función tarjeta de entradas digitales?', a:['Leer sensores','Controlar motores','Medir voltaje','Generar PWM'], c:0},
+  {q:'¿Función tarjeta de salidas digitales?', a:['Accionar actuadores','Leer sensores','Convertir AC a DC','Activar buzzer interno'], c:0},
+  {q:'¿Cómo se identifica sensor 24V?', a:['Cable positivo +24V y GND','Tres fases','Señal analógica','Voltaje AC'], c:0},
+  {q:'¿Función fuente PLC?', a:['Alimentar PLC y sensores','Cambiar fase','Dar PWM','Medir potencia'], c:0},
+  {q:'¿Qué señal entrega sensor inductivo?', a:['24V ON/OFF','0–10V','4–20mA','PWM'], c:0},
+  {q:'¿Qué representa solenoide?', a:['Válvula controlada eléctricamente','Motor trifásico','Sensor NC','Transformador'], c:0},
+  {q:'¿Qué controla bobina Y1?', a:['Movimiento de cilindro','Velocidad del motor','Luz piloto','Presión'], c:0},
+  {q:'¿Qué indica presostato?', a:['Presion del sistema','Temperatura','Voltaje','Resistencia'], c:0},
+  {q:'¿Qué ocurre si presión baja?', a:['Presostato abre y para máquina','Enciende luz verde','Aumenta torque','Activa sensor'], c:0},
+  {q:'¿Qué muestra diagrama de potencia?', a:['Motores y cargas','Sensores','Lógica PLC','Variadores'], c:0},
+  {q:'¿Qué muestra diagrama de control?', a:['Lógica y señales','Físico del motor','Amperaje','Velocidad'], c:0},
+  {q:'¿Por qué es importante numeración?', a:['Facilitar mantenimiento','Aumentar velocidad','Reducir voltaje','Eliminar fallas'], c:0}
+];
+
+let questions = [];
+let currentIndex = 0;
+let userAnswers = [];
+let studentData = { name: "", id: "" };
+let timerInterval;
+let remainingSeconds = 30 * 60;
+
+function init() {
+    questions = QUESTIONS_BASE.map(item => {
+        let indices = [0,1,2,3].sort(() => Math.random() - 0.5);
+        return { 
+            q: item.q, 
+            options: indices.map(i => item.a[i]), 
+            correct: indices.indexOf(0) 
+        };
+    });
+    userAnswers = Array(questions.length).fill(null);
+}
+
+function startExam() {
+    const name = document.getElementById('inputName').value.trim();
+    if(!name) return alert("Ingrese su nombre.");
+    studentData.name = name;
+    studentData.id = document.getElementById('inputId').value.trim();
+    document.getElementById('view-start').classList.add('hidden');
+    document.getElementById('view-exam').classList.remove('hidden');
+    renderQuestion();
+    startTimer();
+}
+
+function renderQuestion() {
+    const q = questions[currentIndex];
+    document.getElementById('progressText').textContent = `Pregunta ${currentIndex + 1} / ${questions.length}`;
+    let html = `<div class="question-text">${q.q}</div>`;
+    q.options.forEach((opt, i) => {
+        const checked = userAnswers[currentIndex] === i ? 'checked' : '';
+        html += `<label class="option-label"><input type="radio" name="opt" value="${i}" ${checked} onchange="userAnswers[${currentIndex}]=${i}"> ${opt}</label>`;
+    });
+    document.getElementById('questionArea').innerHTML = html;
+    document.getElementById('btnPrev').disabled = (currentIndex === 0);
+    document.getElementById('btnNext').textContent = (currentIndex === questions.length - 1) ? "FINALIZAR" : "Siguiente";
+}
+
+function nextQuestion() {
+    if(userAnswers[currentIndex] === null) return alert("Seleccione una opción.");
+    if(currentIndex < questions.length - 1) { currentIndex++; renderQuestion(); } 
+    else { if(confirm("¿Terminar examen?")) finishExam(); }
+}
+
+function prevQuestion() { if(currentIndex > 0) { currentIndex--; renderQuestion(); } }
+
+function startTimer() {
+    timerInterval = setInterval(() => {
+        remainingSeconds--;
+        let m = Math.floor(remainingSeconds / 60), s = remainingSeconds % 60;
+        document.getElementById('timerDisplay').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        if(remainingSeconds <= 0) finishExam();
+    }, 1000);
+}
+
+function finishExam() {
+    clearInterval(timerInterval);
+    let correct = 0;
+    questions.forEach((q, i) => { if(userAnswers[i] === q.correct) correct++; });
+    const score = Math.round((correct / questions.length) * 100);
+    const timeUsed = (30 * 60) - remainingSeconds;
+    
+    const result = {
+        student: studentData.name,
+        studentId: studentData.id,
+        dateTime: new Date().toLocaleString(),
+        correct: correct,
+        scorePercent: score,
+        timeUsedStr: Math.floor(timeUsed/60) + "m " + (timeUsed%60) + "s"
+    };
+
+    // ENVÍO AUTOMÁTICO
+    fetch(urlGoogleSheet, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(result)
+    });
+
+    // GUARDADO LOCAL
+    let history = JSON.parse(localStorage.getItem('exam_data') || "[]");
+    history.unshift(result);
+    localStorage.setItem('exam_data', JSON.stringify(history));
+
+    document.getElementById('view-exam').classList.add('hidden');
+    document.getElementById('view-results').classList.remove('hidden');
+    document.getElementById('resultUser').textContent = studentData.name;
+    document.getElementById('finalScore').textContent = score + "%";
+    document.getElementById('statCorrect').textContent = correct;
+    document.getElementById('statWrong').textContent = questions.length - correct;
+}
+
+function exportToExcel() {
+    const history = JSON.parse(localStorage.getItem('exam_data') || "[]");
+    const ws = XLSX.utils.json_to_sheet(history);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Resultados");
+    XLSX.writeFile(wb, "Reporte_La_Aurora.xlsx");
+}
+
+init();
+</script>
+</body>
+</html>
