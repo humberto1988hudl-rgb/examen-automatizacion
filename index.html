@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Examen — Automatización Electrónica</title>
+    <title>Examen — Automatización Electrónica La Aurora</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root { 
@@ -13,13 +13,14 @@
             --text: #1e293b; 
             --border: #e2e8f0; 
             --success: #22c55e;
+            --danger: #ef4444;
         }
       
         body { 
             font-family: system-ui, -apple-system, sans-serif;
             color: var(--text);
             margin: 0;
-            padding: 10px;
+            padding: 20px;
             min-height: 100vh;
             background-image: linear-gradient(rgba(244, 246, 249, 0.8), rgba(244, 246, 249, 0.8)), url('La-Aurora-107-Nicaragua-Robusto-2.png'); 
             background-size: cover;
@@ -29,9 +30,10 @@
             justify-content: center;
         }
 
-        .container { 
+        .main-wrapper {
+            display: flex;
             width: 100%;
-            max-width: 900px;
+            max-width: 1200px;
             background: var(--card);
             border-radius: 16px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.15);
@@ -39,6 +41,29 @@
             border: 1px solid white;
         }
 
+        .sidebar-catalog {
+            width: 35%;
+            background: #000;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border-right: 1px solid var(--border);
+        }
+
+        .sidebar-catalog img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            transition: opacity 1s ease-in-out;
+            opacity: 0;
+        }
+
+        .sidebar-catalog img.active { opacity: 1; }
+
+        .container { width: 65%; overflow-y: auto; max-height: 90vh; }
         .hidden { display: none !important; }
         .view-padding { padding: 40px; }
 
@@ -60,65 +85,76 @@
         .btn { padding: 14px 24px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 15px; }
         .btn-primary { background: var(--blue); color: white; width: 100%; }
         .btn-success { background: var(--success); color: white; width: 100%; margin-top: 10px; }
+        .btn-danger { background: transparent; border: 1px solid var(--danger); color: var(--danger); width: 100%; margin-top: 30px; }
+        .btn-danger:hover { background: var(--danger); color: white; }
         .btn-outline { background: transparent; border: 1px solid var(--border); color: #64748b; }
-        .btn:disabled { opacity: 0.4; }
 
-        @media (max-width: 600px) { .view-padding { padding: 20px; } }
+        @media (max-width: 850px) { 
+            .main-wrapper { flex-direction: column; }
+            .sidebar-catalog { width: 100%; height: 200px; border-right: none; border-bottom: 1px solid var(--border); }
+            .container { width: 100%; }
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div id="view-start" class="view-padding">
-        <div class="welcome-box">
-            <div style="text-align: center; margin-bottom: 30px;">
-                <img src="La_Aurora.png" alt="La Aurora" style="height: 80px; margin-bottom: 10px;">
-                <h2 style="margin: 0;">Evaluación Técnica</h2>
-                <p style="color: #64748b;">La Aurora — Automatización</p>
-            </div>
-            <div class="instructions">
-                <strong>📋 Instrucciones:</strong>
-                <ul style="margin: 0; padding-left: 20px; font-size: 14px;">
-                    <li>50 Preguntas técnicas de automatización.</li>
-                    <li>30 Minutos de tiempo límite.</li>
-                </ul>
-            </div>
-            <input type="text" id="inputName" class="input-field" placeholder="Nombre Completo">
-            <input type="text" id="inputId" class="input-field" placeholder="ID de Empleado">
-            <button class="btn btn-primary" onclick="startExam()">INICIAR EXAMEN</button>
-        </div>
-    </div>
+<div class="main-wrapper">
+    <div class="sidebar-catalog" id="slideshow"></div>
 
-    <div id="view-exam" class="view-padding hidden">
-        <div class="exam-header">
-            <div id="progressText">Pregunta 1 / 50</div>
-            <div id="timerDisplay">30:00</div>
-        </div>
-        <div id="questionArea"></div>
-        <div style="display: flex; justify-content: space-between; margin-top: 30px; gap: 15px;">
-            <button class="btn btn-outline" id="btnPrev" onclick="prevQuestion()" style="flex: 1;">Anterior</button>
-            <button class="btn btn-primary" id="btnNext" onclick="nextQuestion()" style="flex: 2;">Siguiente</button>
-        </div>
-    </div>
-
-    <div id="view-results" class="view-padding hidden">
-        <div class="results-view">
-            <h2>¡Examen Completado!</h2>
-            <p id="resultUser" style="font-weight: bold;"></p>
-            <div class="score-circle" id="finalScore">0%</div>
-            <div class="stats-grid">
-                <div class="stat-card">Correctas: <strong id="statCorrect">0</strong></div>
-                <div class="stat-card">Incorrectas: <strong id="statWrong">0</strong></div>
+    <div class="container">
+        <div id="view-start" class="view-padding">
+            <div class="welcome-box">
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <img src="La_Aurora.png" alt="La Aurora" style="height: 80px; margin-bottom: 10px;">
+                    <h2>Evaluación de Automatización</h2>
+                </div>
+                <div class="instructions">
+                    <strong>📋 Detalles:</strong> 50 preguntas | 20 minutos.
+                </div>
+                <input type="text" id="inputName" class="input-field" placeholder="Nombre">
+                <input type="text" id="inputLastName" class="input-field" placeholder="Apellidos">
+                <input type="text" id="inputId" class="input-field" placeholder="ID Empleado">
+                <button class="btn btn-primary" onclick="startExam()">INICIAR EXAMEN</button>
             </div>
-            <button class="btn btn-success" onclick="exportToExcel()">📥 DESCARGAR REPORTE EXCEL</button>
-            <button class="btn btn-outline" style="width: 100%; margin-top: 10px;" onclick="location.reload()">Nuevo Intento</button>
+        </div>
+
+        <div id="view-exam" class="view-padding hidden">
+            <div class="exam-header">
+                <div id="progressText"></div>
+                <div id="timerDisplay">20:00</div>
+            </div>
+            <div id="questionArea"></div>
+            <div style="display: flex; gap: 15px; margin-top: 20px;">
+                <button class="btn btn-outline" id="btnPrev" onclick="prevQuestion()" style="flex:1">Anterior</button>
+                <button class="btn btn-primary" id="btnNext" onclick="nextQuestion()" style="flex:2">Siguiente</button>
+            </div>
+        </div>
+
+        <div id="view-results" class="view-padding hidden">
+            <div class="results-view">
+                <h2 id="resultUser"></h2>
+                <div class="score-circle" id="finalScore"></div>
+                <div class="stats-grid">
+                    <div class="stat-card">Correctas: <strong id="statCorrect"></strong></div>
+                    <div class="stat-card">Incorrectas: <strong id="statWrong"></strong></div>
+                </div>
+                <button class="btn btn-success" onclick="exportToExcel()">📥 DESCARGAR EXCEL</button>
+                <button class="btn btn-outline" style="width:100%; margin-top:10px" onclick="location.reload()">Nuevo Examen</button>
+                <button class="btn btn-danger" onclick="resetDatabase()">⚠️ RESETEAR HISTORIAL (Admin)</button>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-// --- CONFIGURACIÓN ---
-const urlGoogleSheet = "https://script.google.com/macros/s/AKfycbwOmh_ZPBjWhfUzZa24j2WbMP2PaGVoYUFPLl1msKbDUNniL4JclkI0XPwJ30gHp77U_w/exec";
+const CATALOG_IMAGES = [
+    "https://github.com/humberto1988hudl-rgb/examen-automatizacion/blob/main/La_Aurora1.png?raw=true",
+    "https://github.com/humberto1988hudl-rgb/examen-automatizacion/blob/main/La_Aurora2.png?raw=true",
+    "https://github.com/humberto1988hudl-rgb/examen-automatizacion/blob/main/La_Aurora3.png?raw=true",
+    "https://github.com/humberto1988hudl-rgb/examen-automatizacion/blob/main/La_Aurora4.png?raw=true",
+    "https://github.com/humberto1988hudl-rgb/examen-automatizacion/blob/main/La_Aurora5.png?raw=true",
+    "https://github.com/humberto1988hudl-rgb/examen-automatizacion/blob/main/La_Aurora6.png?raw=true",
+];
 
 const QUESTIONS_BASE = [
   {q:'¿Cuál es la función principal del contactor K1?', a:['Arrancar y cortar el motor','Reducir voltaje','Medir corriente','Proteger el PLC'], c:0},
@@ -173,109 +209,104 @@ const QUESTIONS_BASE = [
   {q:'¿Por qué es importante numeración?', a:['Facilitar mantenimiento','Aumentar velocidad','Reducir voltaje','Eliminar fallas'], c:0}
 ];
 
-let questions = [];
-let currentIndex = 0;
-let userAnswers = [];
-let studentData = { name: "", id: "" };
-let timerInterval;
-let remainingSeconds = 30 * 60;
+let questions = [], currentIndex = 0, userAnswers = [], studentData = {};
+let timerInterval, remainingSeconds = 20 * 60;
 
 function init() {
+    const container = document.getElementById('slideshow');
+    CATALOG_IMAGES.forEach((url, i) => {
+        const img = document.createElement('img'); img.src = url;
+        if(i===0) img.classList.add('active'); container.appendChild(img);
+    });
+    setInterval(() => {
+        const imgs = container.getElementsByTagName('img');
+        imgs[currentIndex % imgs.length].classList.remove('active');
+        currentIndex++;
+        imgs[currentIndex % imgs.length].classList.add('active');
+    }, 4000);
+    currentIndex = 0;
     questions = QUESTIONS_BASE.map(item => {
         let indices = [0,1,2,3].sort(() => Math.random() - 0.5);
-        return { 
-            q: item.q, 
-            options: indices.map(i => item.a[i]), 
-            correct: indices.indexOf(0) 
-        };
+        return { q: item.q, options: indices.map(i => item.a[i]), correct: indices.indexOf(0) };
     });
     userAnswers = Array(questions.length).fill(null);
 }
 
 function startExam() {
-    const name = document.getElementById('inputName').value.trim();
-    if(!name) return alert("Ingrese su nombre.");
-    studentData.name = name;
-    studentData.id = document.getElementById('inputId').value.trim();
+    const n = document.getElementById('inputName').value.trim();
+    const l = document.getElementById('inputLastName').value.trim();
+    if(!n || !l) return alert("Ingrese sus datos");
+    studentData = { name: `${n} ${l}`, id: document.getElementById('inputId').value };
     document.getElementById('view-start').classList.add('hidden');
     document.getElementById('view-exam').classList.remove('hidden');
     renderQuestion();
-    startTimer();
-}
-
-function renderQuestion() {
-    const q = questions[currentIndex];
-    document.getElementById('progressText').textContent = `Pregunta ${currentIndex + 1} / ${questions.length}`;
-    let html = `<div class="question-text">${q.q}</div>`;
-    q.options.forEach((opt, i) => {
-        const checked = userAnswers[currentIndex] === i ? 'checked' : '';
-        html += `<label class="option-label"><input type="radio" name="opt" value="${i}" ${checked} onchange="userAnswers[${currentIndex}]=${i}"> ${opt}</label>`;
-    });
-    document.getElementById('questionArea').innerHTML = html;
-    document.getElementById('btnPrev').disabled = (currentIndex === 0);
-    document.getElementById('btnNext').textContent = (currentIndex === questions.length - 1) ? "FINALIZAR" : "Siguiente";
-}
-
-function nextQuestion() {
-    if(userAnswers[currentIndex] === null) return alert("Seleccione una opción.");
-    if(currentIndex < questions.length - 1) { currentIndex++; renderQuestion(); } 
-    else { if(confirm("¿Terminar examen?")) finishExam(); }
-}
-
-function prevQuestion() { if(currentIndex > 0) { currentIndex--; renderQuestion(); } }
-
-function startTimer() {
     timerInterval = setInterval(() => {
         remainingSeconds--;
-        let m = Math.floor(remainingSeconds / 60), s = remainingSeconds % 60;
-        document.getElementById('timerDisplay').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        let m = Math.floor(remainingSeconds/60), s = remainingSeconds%60;
+        document.getElementById('timerDisplay').textContent = `${m}:${s<10?'0':''}${s}`;
         if(remainingSeconds <= 0) finishExam();
     }, 1000);
 }
 
+function renderQuestion() {
+    const q = questions[currentIndex];
+    document.getElementById('progressText').textContent = `Pregunta ${currentIndex+1}/50`;
+    let h = `<div class="question-text">${q.q}</div>`;
+    q.options.forEach((o, i) => {
+        h += `<label class="option-label"><input type="radio" name="o" onchange="userAnswers[${currentIndex}]=${i}" ${userAnswers[currentIndex]===i?'checked':''}> ${o}</label>`;
+    });
+    document.getElementById('questionArea').innerHTML = h;
+    document.getElementById('btnPrev').disabled = currentIndex === 0;
+    document.getElementById('btnNext').textContent = currentIndex === 49 ? "FINALIZAR" : "Siguiente";
+}
+
+function nextQuestion() {
+    if(userAnswers[currentIndex] === null) return alert("Seleccione respuesta");
+    if(currentIndex < 49) { currentIndex++; renderQuestion(); } else finishExam();
+}
+
+function prevQuestion() { currentIndex--; renderQuestion(); }
+
 function finishExam() {
     clearInterval(timerInterval);
     let correct = 0;
-    questions.forEach((q, i) => { if(userAnswers[i] === q.correct) correct++; });
-    const score = Math.round((correct / questions.length) * 100);
-    const timeUsed = (30 * 60) - remainingSeconds;
-    
-    const result = {
-        student: studentData.name,
-        studentId: studentData.id,
-        dateTime: new Date().toLocaleString(),
-        correct: correct,
-        scorePercent: score,
-        timeUsedStr: Math.floor(timeUsed/60) + "m " + (timeUsed%60) + "s"
+    questions.forEach((q,i) => { if(userAnswers[i]===q.correct) correct++; });
+    const score = Math.round((correct/50)*100);
+    const now = new Date();
+    const res = { 
+        student: studentData.name, id: studentData.id, 
+        date: now.toLocaleDateString(), time: now.toLocaleTimeString(),
+        correct, score, timeUsed: `${Math.floor(((20*60)-remainingSeconds)/60)}m`
     };
-
-    // ENVÍO AUTOMÁTICO
-    fetch(urlGoogleSheet, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(result)
-    });
-
-    // GUARDADO LOCAL
-    let history = JSON.parse(localStorage.getItem('exam_data') || "[]");
-    history.unshift(result);
-    localStorage.setItem('exam_data', JSON.stringify(history));
-
+    let h = JSON.parse(localStorage.getItem('exam_data') || "[]");
+    h.unshift(res); localStorage.setItem('exam_data', JSON.stringify(h));
+    
     document.getElementById('view-exam').classList.add('hidden');
     document.getElementById('view-results').classList.remove('hidden');
-    document.getElementById('resultUser').textContent = studentData.name;
+    document.getElementById('resultUser').textContent = res.student;
     document.getElementById('finalScore').textContent = score + "%";
     document.getElementById('statCorrect').textContent = correct;
-    document.getElementById('statWrong').textContent = questions.length - correct;
+    document.getElementById('statWrong').textContent = 50 - correct;
 }
 
 function exportToExcel() {
-    const history = JSON.parse(localStorage.getItem('exam_data') || "[]");
-    const ws = XLSX.utils.json_to_sheet(history);
+    const h = JSON.parse(localStorage.getItem('exam_data') || "[]");
+    const data = h.map(i => ({
+        "Estudiante": i.student, "ID": i.id, "Fecha": i.date, "Hora": i.time,
+        "Correctas": i.correct, "Calificación (0-100)": i.score, "Tiempo": i.timeUsed
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Resultados");
     XLSX.writeFile(wb, "Reporte_La_Aurora.xlsx");
+}
+
+function resetDatabase() {
+    if(prompt("Contraseña:") === "Aurora2026") {
+        localStorage.removeItem('exam_data');
+        alert("Datos borrados");
+        location.reload();
+    } else alert("Error");
 }
 
 init();
