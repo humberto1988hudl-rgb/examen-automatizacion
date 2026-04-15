@@ -261,10 +261,18 @@ function renderQuestion() {
 }
 
 function nextQuestion() {
-    if(userAnswers[currentIndex] === null) return alert("Seleccione respuesta");
-    if(currentIndex < 49) { currentIndex++; renderQuestion(); } else finishExam();
+    // Si el valor es null, el código cree que no has marcado nada
+    if (userAnswers[currentIndex] === null) {
+        return alert("Seleccione respuesta");
+    }
+    
+    if (currentIndex < 49) { 
+        currentIndex++; 
+        renderQuestion(); 
+    } else {
+        finishExam();
+    }
 }
-
 function prevQuestion() { currentIndex--; renderQuestion(); }
 
 function finishExam() {
